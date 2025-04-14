@@ -6,11 +6,20 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
 use App\Models\User;
+use Database\Seeders\RoleSeeder;
+use Database\Seeders\PassportSeeder; 
 
 class RegisterUserTest extends TestCase
 {
     use RefreshDatabase, WithFaker;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->seed(RoleSeeder::class);
+        $this->seed(PassportSeeder::class);
+    }
 
     public function test_user_can_register_successfully(): void
     {
