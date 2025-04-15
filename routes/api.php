@@ -3,12 +3,14 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\UserController;
+use App\Http\Controllers\API\AuthController;
+
+Route::post('/users', [UserController::class, 'store'])->name('users.store');
+Route::post('/tokens', [AuthController::class, 'login'])->name('tokens.create');
 
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum')->name('user.current');
-
-Route::post('/users', [UserController::class, 'store'])->name('users.store');
 
 Route::get('/test', function () {
     return response()->json([
