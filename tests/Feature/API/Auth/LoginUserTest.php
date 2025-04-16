@@ -2,25 +2,11 @@
 
 namespace Tests\Feature\API\Auth;
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithFaker;
-use Tests\TestCase;
+use Tests\Feature\API\ApiTestCase;
 use App\Models\User;
-use Database\Seeders\RoleSeeder;
-use Database\Seeders\PassportSeeder;
 
-class LoginUserTest extends TestCase
+class LoginUserTest extends ApiTestCase
 {
-    use RefreshDatabase, WithFaker;
-
-    protected function setUp(): void
-    {
-        parent::setUp();
-        
-        $this->seed(RoleSeeder::class);
-        $this->seed(PassportSeeder::class);
-    }
-
     /**
      * Test successful login
      */
@@ -103,7 +89,6 @@ class LoginUserTest extends TestCase
         
         $this->assertArrayHasKey('token', $data);
         $this->assertNotEmpty($data['token']);
-        
         $this->assertIsString($data['token']);
     }
 }
