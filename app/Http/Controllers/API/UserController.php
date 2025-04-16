@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
+use App\Http\Resources\UserResource;
 
 class UserController extends Controller
 {
@@ -39,4 +40,16 @@ class UserController extends Controller
             'token' => $token,
         ], 201);
     }
+
+    /**
+     * Get the authenticated user's profile.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function profile(Request $request)
+    {        
+        return new UserResource($request->user());
+    }
+
 }

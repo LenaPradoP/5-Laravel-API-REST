@@ -2,47 +2,18 @@
 
 namespace Tests\Feature\API\Auth;
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
-use App\Models\User;
-use Laravel\Passport\Passport;
-use Database\Seeders\RoleSeeder;
-use Database\Seeders\PassportSeeder;
+use Tests\Feature\API\ApiTestCase;
 
-class LogoutUserTest extends TestCase
+class LogoutUserTest extends ApiTestCase
 {
-    use RefreshDatabase;
-
-    protected function setUp(): void
-    {
-        parent::setUp();
-        
-        $this->seed(RoleSeeder::class);
-        $this->seed(PassportSeeder::class);
-    }
-
     /**
      * Test successful logout
      */
     public function test_user_can_logout_successfully(): void
     {
-        $user = User::factory()->create([
-            'email' => 'test@example.com',
-            'password' => bcrypt('password123'),
-        ]);
+        $this->createAuthenticatedUser();
         
-        $user->assignRole('user');
-        
-        $loginResponse = $this->postJson('/api/tokens', [
-            'email' => 'test@example.com',
-            'password' => 'password123',
-        ]);
-        
-        $token = $loginResponse->json('token');
-        
-        $response = $this->deleteJson('/api/tokens', [], [
-            'Authorization' => 'Bearer ' . $token
-        ]);
+        $response = $this->deleteJson('/api/tokens', [], $this->authHeaders());
 
         $response->assertStatus(200)
             ->assertJson([

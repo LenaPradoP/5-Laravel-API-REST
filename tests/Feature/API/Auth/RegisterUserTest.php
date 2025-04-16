@@ -2,25 +2,14 @@
 
 namespace Tests\Feature\API\Auth;
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithFaker;
-use Tests\TestCase;
+use Tests\Feature\API\ApiTestCase;
 use App\Models\User;
-use Database\Seeders\RoleSeeder;
-use Database\Seeders\PassportSeeder; 
 
-class RegisterUserTest extends TestCase
+class RegisterUserTest extends ApiTestCase
 {
-    use RefreshDatabase, WithFaker;
-
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        $this->seed(RoleSeeder::class);
-        $this->seed(PassportSeeder::class);
-    }
-
+    /**
+     * Test successful user registration
+     */
     public function test_user_can_register_successfully(): void
     {
         $userData = [
@@ -50,11 +39,13 @@ class RegisterUserTest extends TestCase
             'name' => 'Test User',
         ]);
 
-            $user = User::where('email', 'test@example.com')->first();
+        $user = User::where('email', 'test@example.com')->first();
         $this->assertTrue($user->hasRole('user'));
     }
 
-
+    /**
+     * Test validation for required fields
+     */
     public function test_register_requires_all_fields(): void
     {
         $response = $this->postJson('/api/users', []);
@@ -62,7 +53,6 @@ class RegisterUserTest extends TestCase
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['name', 'email', 'birthdate', 'password']);
     }
-
 
     public function test_register_requires_unique_email(): void
     {
