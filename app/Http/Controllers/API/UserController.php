@@ -106,4 +106,24 @@ class UserController extends Controller
         
         return new UserResource($user);
     }
+
+    /**
+     * Delete user account.
+     *
+     * @param  Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function destroy(Request $request)
+    {
+        $user = $request->user();
+        
+        // Revoke all tokens
+        $user->tokens()->delete();
+        
+        // Delete the user
+        $user->delete();
+        
+        return response()->json(null, 204);
+    }
+    
 }
