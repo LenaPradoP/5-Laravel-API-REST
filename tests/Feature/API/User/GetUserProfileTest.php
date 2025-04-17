@@ -3,6 +3,7 @@
 namespace Tests\Feature\API\User;
 
 use Tests\Feature\API\ApiTestCase;
+use App\Models\User;
 
 class GetUserProfileTest extends ApiTestCase
 {
@@ -13,7 +14,8 @@ class GetUserProfileTest extends ApiTestCase
     {
         $this->createAuthenticatedUser();
         
-        $response = $this->getJson('/api/user/profile', $this->authHeaders());
+        // Cambiar de '/api/user/profile' a '/api/users'
+        $response = $this->getJson('/api/users', $this->authHeaders());
 
         $response->assertStatus(200)
             ->assertJsonStructure([
@@ -42,8 +44,54 @@ class GetUserProfileTest extends ApiTestCase
      */
     public function test_unauthenticated_user_cannot_view_profile(): void
     {
-        $response = $this->getJson('/api/user/profile');
+        // Cambiar de '/api/user/profile' a '/api/users'
+        $response = $this->getJson('/api/users');
         
         $response->assertStatus(401);
+    }
+    
+    /**
+     * Test authenticated user can view specific user profile by ID
+     */
+    public function test_authenticated_user_can_view_specific_profile(): void
+    {
+        $this->createAuthenticatedUser();
+        
+        // Crear otro usuario
+        $anotherUser = User::factory()->create([
+            'name' => 'Another User',
+            'email' => 'another@example.com',
+        ]);
+        
+        // Dar permiso admin al usuario actual para ver otros perfiles
+        $this->user->assignRole('admin');
+        
+        // Probar acceso al perfil específico
+        $response = $this->getJson('/api/users/' . $anotherUser->id, $this->authHeaders());
+
+        $response->assertStatus(200)
+            ->assertJson([
+                'data' => [
+                    'id' => $anotherUser->id,
+                    'name' => 'Another User',
+                    'email' => 'another@example.com',
+                ]
+            ]);
+    }
+    
+    /**
+     * Test regular user cannot view another user's profile
+     */
+    public function test_regular_user_cannot_view_other_profile(): void
+    {
+        $this->createAuthenticatedUser();
+        
+        // Crear otro usuario
+        $anotherUser = User::factory()->create();
+        
+        // Intentar acceder al perfil del otro usuario
+        $response = $this->getJson('/api/users/' . $anotherUser->id, $this->authHeaders());
+
+        $response->assertStatus(403);
     }
 }
