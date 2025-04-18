@@ -49,4 +49,13 @@ class User extends Authenticatable
             'birthdate' => 'date',
         ];
     }
+
+    /**
+     * Get the deck owned by the user.
+     */
+    public function deck()
+    {
+        return $this->hasOne(Deck::class);
+    }
+
 }
