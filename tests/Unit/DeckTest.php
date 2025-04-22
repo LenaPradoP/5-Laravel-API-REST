@@ -14,13 +14,19 @@ class DeckTest extends TestCase
     use RefreshDatabase;
 
     /**
+     * Set up the test environment.
+     */
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->seed('TarotCardsSeeder');
+    }
+
+    /**
      * Test that a deck is automatically created for a new user.
      */
     public function test_deck_is_created_when_user_registers(): void
-    {
-        // Arrange: We need cards in the database
-        $this->seed('TarotCardsSeeder');
-        
+    {   
         // Act: Create a new user, which should trigger deck creation
         $user = User::factory()->create();
 
@@ -43,9 +49,6 @@ class DeckTest extends TestCase
      */
     public function test_deck_card_relationships(): void
     {
-        // Arrange: We need cards in the database
-        $this->seed('TarotCardsSeeder');
-        
         // Create a user and get their deck
         $user = User::factory()->create();
         $deck = Deck::where('user_id', $user->id)->first();
