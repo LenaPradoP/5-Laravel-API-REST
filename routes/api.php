@@ -14,6 +14,7 @@ Route::middleware('auth:api')->group(function () {
     Route::put('/users/{id?}', [UserController::class, 'update'])->name('users.update');
     Route::delete('/users', [UserController::class, 'destroy'])->name('users.destroy');
     Route::get('/decks', [DeckController::class, 'index'])->name('decks.index');
+    Route::put('/decks', [DeckController::class, 'update']);
 });
 
 Route::get('/test', function () {
