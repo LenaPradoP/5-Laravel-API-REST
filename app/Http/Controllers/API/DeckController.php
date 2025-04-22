@@ -30,7 +30,7 @@ class DeckController extends Controller
             return response()->json(['error' => 'Unauthorized'], 401);
         }
         
-        $deck = $this->deckService->getUserDeck($user);
+        $deck = $this->deckService->getCurrentUserDeck();
         $deckCards = $this->deckService->getDeckCards($deck);
         
         // Load the card relationship on each deck card for the response
@@ -51,4 +51,50 @@ class DeckController extends Controller
             ]
         ]);
     }
+
+        /**
+     * Update the deck (shuffle, cut, etc.).
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function update(Request $request): JsonResponse
+    {
+        $request->validate([
+            'action_type' => 'required|in:shuffle,cut',
+        ]);
+
+        $deck = $this->deckService->getCurrentUserDeck();
+        $actionType = $request->input('action_type');
+
+        if ($actionType === 'shuffle') {
+            $result = $this->deckService->executeShuffleDeckCards($deck);
+            
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'deck_id' => $deck->id,
+                    'cards' => $this->deckService->getDeckCards($deck)
+                ]
+            ]);
+        } else if ($actionType === 'cut') {
+            $cutInfo = $this->deckService->executeCutDeckOperation($deck);
+            
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'deck_id' => $deck->id,
+                    'cards' => $this->deckService->getDeckCards($deck),
+                    'cut_info' => $cutInfo
+                ]
+            ]);
+        }
+
+        // Este código nunca debería ejecutarse debido a la validación
+        return response()->json([
+            'success' => false,
+            'message' => 'Invalid action type'
+        ], 400);
+    }
+
 }
