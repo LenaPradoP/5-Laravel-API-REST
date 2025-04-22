@@ -6,8 +6,6 @@ use App\Models\Card;
 use App\Models\Deck;
 use App\Models\User;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\DB;
-use Exception;
 
 class DeckService
 {
