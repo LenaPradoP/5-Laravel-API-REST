@@ -5,10 +5,9 @@ namespace Tests\Feature\API\Deck;
 use App\Models\User;
 use App\Models\Deck;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Laravel\Passport\Passport;
-use Tests\TestCase;
+use Tests\Feature\API\ApiTestCase;
 
-class DeckActionsTest extends TestCase
+class DeckActionsTest extends ApiTestCase
 {
     use RefreshDatabase;
 
@@ -19,15 +18,28 @@ class DeckActionsTest extends TestCase
     {
         parent::setUp();
         
-        // Solo sembramos las cartas
         $this->seed('TarotCardsSeeder');
-        
-        // Crear un usuario para las pruebas (el deck se creará automáticamente por el observer)
-        $this->user = User::factory()->create();
-        
-        // Obtener el mazo que se creó automáticamente
+        $this->createAuthenticatedUser();
         $this->deck = Deck::where('user_id', $this->user->id)->first();
-        $this->assertNotNull($this->deck, "No se creó automáticamente un mazo para el usuario");
+        $this->assertNotNull($this->deck, "Deck was not created");
+    }
+
+    public function test_action_type_is_required(): void
+    {        
+        $response = $this->putJson('/api/decks', [], $this->authHeaders());
+        
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['action_type']);
+    }
+
+    public function test_invalid_action_type_returns_error(): void
+    {        
+        $response = $this->putJson('/api/decks', [
+            'action_type' => 'invalid_action'
+        ], $this->authHeaders());
+        
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['action_type']);
     }
 
     public function test_unauthenticated_user_cannot_shuffle_deck(): void
@@ -41,19 +53,14 @@ class DeckActionsTest extends TestCase
     
     public function test_authenticated_user_can_shuffle_deck(): void
     {
-        // Guardar el orden original de las cartas
         $originalOrder = $this->deck->cards()
             ->orderBy('position', 'asc')
             ->pluck('position', 'card_id')
             ->toArray();
-        
-        // Autenticar al usuario
-        Passport::actingAs($this->user);
-        
-        // Realizar la acción de barajar
+                
         $response = $this->putJson('/api/decks', [
             'action_type' => 'shuffle'
-        ]);
+        ], $this->authHeaders());
         
         $response->assertStatus(200)
             ->assertJsonStructure([
@@ -70,17 +77,14 @@ class DeckActionsTest extends TestCase
                 ]
             ]);
         
-        // Verificar que el orden de las cartas ha cambiado en la base de datos
         $this->deck->refresh();
         $newDbOrder = $this->deck->cards()
             ->orderBy('position', 'asc')
             ->pluck('position', 'card_id')
             ->toArray();
         
-        // Asegurar que el nuevo orden en la DB es diferente al original
         $this->assertNotEquals($originalOrder, $newDbOrder);
         
-        // Verificar que el orden en la respuesta coincide con el guardado en la DB
         $responseCards = collect($response->json('data.cards'))->keyBy('card_id');
         $dbCards = $this->deck->cards()->get()->keyBy('card_id');
         
@@ -88,39 +92,21 @@ class DeckActionsTest extends TestCase
             $this->assertEquals(
                 $dbCard->position, 
                 $responseCards[$cardId]['position'], 
-                "La posición de la carta {$cardId} en la base de datos no coincide con la respuesta"
+                "The position of card {$cardId} in the database does not match the response"
             );
         }
     }
     
-    public function test_invalid_action_type_returns_error(): void
-    {
-        // Autenticar al usuario
-        Passport::actingAs($this->user);
-        
-        $response = $this->putJson('/api/decks', [
-            'action_type' => 'invalid_action'
-        ]);
-        
-        $response->assertStatus(422)
-            ->assertJsonValidationErrors(['action_type']);
-    }
-    
     public function test_authenticated_user_can_cut_deck(): void
     {
-        // Guardar el orden original de las cartas
         $originalOrder = $this->deck->cards()
             ->orderBy('position', 'asc')
             ->pluck('position', 'card_id')
             ->toArray();
-        
-        // Autenticar al usuario
-        Passport::actingAs($this->user);
-        
-        // Realizar la acción de cortar
+                
         $response = $this->putJson('/api/decks', [
             'action_type' => 'cut'
-        ]);
+        ], $this->authHeaders());
         
         $response->assertStatus(200)
             ->assertJsonStructure([
@@ -141,17 +127,14 @@ class DeckActionsTest extends TestCase
                 ]
             ]);
         
-        // Verificar que el orden de las cartas ha cambiado en la base de datos
         $this->deck->refresh();
         $newDbOrder = $this->deck->cards()
             ->orderBy('position', 'asc')
             ->pluck('position', 'card_id')
             ->toArray();
         
-        // Asegurar que el nuevo orden en la DB es diferente al original
         $this->assertNotEquals($originalOrder, $newDbOrder);
         
-        // Verificar que el orden en la respuesta coincide con el guardado en la DB
         $responseCards = collect($response->json('data.cards'))->keyBy('card_id');
         $dbCards = $this->deck->cards()->get()->keyBy('card_id');
         
@@ -159,31 +142,18 @@ class DeckActionsTest extends TestCase
             $this->assertEquals(
                 $dbCard->position, 
                 $responseCards[$cardId]['position'], 
-                "La posición de la carta {$cardId} en la base de datos no coincide con la respuesta"
+                "The position of card {$cardId} in the database does not match the response"
             );
         }
         
-        // Verificar que todas las cartas están presentes después del corte
         $this->assertCount(count($originalOrder), $newDbOrder);
         
-        // Verificar que la operación de corte se ha realizado correctamente
         $cutInfo = $response->json('data.cut_info');
         
-        // Verificar que la suma de ambas mitades es igual al total de cartas
         $this->assertEquals(
             count($originalOrder), 
             count($cutInfo['first_half']) + count($cutInfo['second_half'])
         );
     }
-    
-    public function test_action_type_is_required(): void
-    {
-        // Autenticar al usuario
-        Passport::actingAs($this->user);
-        
-        $response = $this->putJson('/api/decks', []);
-        
-        $response->assertStatus(422)
-            ->assertJsonValidationErrors(['action_type']);
-    }
+
 }

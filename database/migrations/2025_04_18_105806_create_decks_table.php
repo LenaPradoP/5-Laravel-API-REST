@@ -16,8 +16,7 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->timestamp('last_used')->nullable();
             $table->timestamps();
-            
-            // Cada usuario solo puede tener un mazo
+
             $table->unique('user_id');
         });
     }

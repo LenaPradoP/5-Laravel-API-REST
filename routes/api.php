@@ -1,9 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\API\UserController;
-use App\Http\Controllers\API\AuthController;
-use App\Http\Controllers\API\DeckController;
+use App\Http\Controllers\API\{UserController, AuthController, DeckController, SpreadController};
 
 Route::post('/users', [UserController::class, 'store'])->name('users.store');
 Route::post('/tokens', [AuthController::class, 'login'])->name('tokens.create');
@@ -15,6 +13,7 @@ Route::middleware('auth:api')->group(function () {
     Route::delete('/users', [UserController::class, 'destroy'])->name('users.destroy');
     Route::get('/decks', [DeckController::class, 'index'])->name('decks.index');
     Route::put('/decks', [DeckController::class, 'update']);
+    Route::post('/spreads', [SpreadController::class, 'store']);
 });
 
 Route::get('/test', function () {
