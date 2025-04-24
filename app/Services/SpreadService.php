@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\DB;
 use App\Models\Spread;
 use App\Models\SpreadCard;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Auth\Access\AuthorizationException;
 
 class SpreadService
 {
@@ -74,6 +75,21 @@ class SpreadService
             'deck_id' => $deck->id,
             'spreads' => $spreads
         ];
+    }
+    
+    public function getSpread(int $spreadId): array
+    {
+        $deck = $this->deckService->getCurrentUserDeck();
+        
+        $spread = Spread::with('spreadCards.card')->findOrFail($spreadId);
+        
+        if ($spread->deck_id !== $deck->id) {
+            throw new AuthorizationException('You do not have permission to view this spread.');
+        }
+        
+        $cardsData = $spread->spreadCards->sortBy('position')->values()->map->toArray()->toArray();
+        
+        return $this->formatSpreadResponse($spread, $cardsData);
     }
     
     private function executeInTransaction(callable $callback)
