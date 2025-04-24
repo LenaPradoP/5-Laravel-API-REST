@@ -13,7 +13,8 @@ Route::middleware('auth:api')->group(function () {
     Route::delete('/users', [UserController::class, 'destroy'])->name('users.destroy');
     Route::get('/decks', [DeckController::class, 'index'])->name('decks.index');
     Route::put('/decks', [DeckController::class, 'update']);
-    Route::post('/spreads', [SpreadController::class, 'store']);
+    Route::get('/spreads', [SpreadController::class, 'index'])->name('spreads.index');
+    Route::post('/spreads', [SpreadController::class, 'store'])->name('spreads.store');
 });
 
 Route::get('/test', function () {
