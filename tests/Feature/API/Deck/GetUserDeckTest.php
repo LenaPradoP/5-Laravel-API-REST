@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature\Deck;
+namespace Tests\Feature\API\Deck;
 
 use App\Models\User;
 use App\Models\Deck;

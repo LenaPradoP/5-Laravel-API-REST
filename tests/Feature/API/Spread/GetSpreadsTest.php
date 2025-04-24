@@ -37,7 +37,6 @@ class GetSpreadsTest extends ApiTestCase
     
     public function test_user_can_get_list_of_spreads(): void
     {
-        // Crear algunas tiradas para este usuario
         $spread1 = Spread::create([
             'deck_id' => $this->deck->id,
             'spread_type' => 'first',
@@ -50,17 +49,14 @@ class GetSpreadsTest extends ApiTestCase
             'creation_date' => now()
         ]);
         
-        // Añadir cartas a las tiradas
         $cards = Card::inRandomOrder()->take(4)->get();
         
-        // Para la primera tirada (una carta)
         SpreadCard::create([
             'spread_id' => $spread1->id,
             'card_id' => $cards[0]->id,
             'position' => 1
         ]);
         
-        // Para la segunda tirada (tres cartas)
         for ($i = 0; $i < 3; $i++) {
             SpreadCard::create([
                 'spread_id' => $spread2->id,
@@ -94,7 +90,6 @@ class GetSpreadsTest extends ApiTestCase
 
     public function test_user_can_filter_spreads_by_type(): void
     {
-        // Crear tiradas de diferentes tipos
         Spread::create([
             'deck_id' => $this->deck->id,
             'spread_type' => 'first',
@@ -107,7 +102,6 @@ class GetSpreadsTest extends ApiTestCase
             'creation_date' => now()
         ]);
         
-        // Filtrar por tipo 'first'
         $response = $this->getJson('/api/spreads?spread_type=first', $this->authHeaders());
         
         $response->assertStatus(200);
@@ -118,9 +112,7 @@ class GetSpreadsTest extends ApiTestCase
     }
 
     public function test_returns_empty_array_when_no_spreads(): void
-    {
-        // No crear ninguna tirada
-        
+    {        
         $response = $this->getJson('/api/spreads', $this->authHeaders());
         
         $response->assertStatus(200);

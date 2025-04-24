@@ -15,6 +15,7 @@ Route::middleware('auth:api')->group(function () {
     Route::put('/decks', [DeckController::class, 'update']);
     Route::get('/spreads', [SpreadController::class, 'index'])->name('spreads.index');
     Route::post('/spreads', [SpreadController::class, 'store'])->name('spreads.store');
+    Route::get('/spreads/{id}', [SpreadController::class, 'show'])->name('spreads.show');
 });
 
 Route::get('/test', function () {
