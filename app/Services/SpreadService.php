@@ -91,6 +91,21 @@ class SpreadService
         
         return $this->formatSpreadResponse($spread, $cardsData);
     }
+
+    public function deleteSpread(int $spreadId): bool
+    {
+        $deck = $this->deckService->getCurrentUserDeck();
+        
+        $spread = Spread::findOrFail($spreadId);
+        
+        if ($spread->deck_id !== $deck->id) {
+            throw new AuthorizationException('You do not have permission to delete this spread.');
+        }
+        return $this->executeInTransaction(function() use ($spread) {
+            
+            return $spread->delete();
+        });
+    }
     
     private function executeInTransaction(callable $callback)
     {

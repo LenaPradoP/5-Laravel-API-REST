@@ -90,4 +90,29 @@ class SpreadController extends Controller
             ], 500);
         }
     }
+
+    public function destroy($id)
+    {
+        try {
+            $this->spreadService->deleteSpread($id);
+            
+            return response()->json(null, 204);
+                
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'message' => 'Spread not found.'
+            ], 404);
+        } catch (AuthorizationException $e) {
+            return response()->json([
+                'message' => $e->getMessage()
+            ], 403);
+        } catch (\Exception $e) {
+            Log::error('Error deleting spread: ' . $e->getMessage());
+            
+            return response()->json([
+                'message' => 'Failed to delete spread',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 }
