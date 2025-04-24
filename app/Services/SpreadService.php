@@ -58,26 +58,21 @@ class SpreadService
             );
         });
     }
-
-    public function getSpread(int $spreadId): array
-    {
-        $spread = Spread::with('spreadCards.card')->findOrFail($spreadId);
-        
-        $cardsData = $spread->spreadCards->sortBy('position')->values()->map->toArray()->toArray();
-        
-        return $this->formatSpreadResponse($spread, $cardsData);
-    }
     
-    public function getSpreadsForDeck(): array
+    public function getSpreadsForDeck(?string $spreadType = null): array
     {
         $deck = $this->deckService->getCurrentUserDeck();
         $query = Spread::where('deck_id', $deck->id);
+        
+        if ($spreadType) {
+            $query->where('spread_type', $spreadType);
+        }
         
         $spreads = $query->orderBy('creation_date', 'desc')->get();
         
         return [
             'deck_id' => $deck->id,
-            'spreads' => $spreads->map(fn($spread) => $spread->toArray())->toArray()
+            'spreads' => $spreads
         ];
     }
     
