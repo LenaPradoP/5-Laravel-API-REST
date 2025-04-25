@@ -14,7 +14,7 @@ class UserResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        return [
+        $data = [
             'id' => $this->id,
             'name' => $this->name,
             'email' => $this->email,
@@ -22,5 +22,12 @@ class UserResource extends JsonResource
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];
+        
+        // Include roles if the requesting user is an admin
+        if ($request->user() && $request->user()->hasRole('admin')) {
+            $data['roles'] = $this->getRoleNames()->toArray();
+        }
+        
+        return $data;
     }
 }

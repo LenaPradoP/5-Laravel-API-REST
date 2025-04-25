@@ -8,7 +8,12 @@ Route::post('/tokens', [AuthController::class, 'login'])->name('tokens.create');
 
 Route::middleware('auth:api')->group(function () {
     Route::delete('/tokens', [AuthController::class, 'logout'])->name('tokens.destroy');
-    Route::get('/users/{id?}', [UserController::class, 'show'])->name('users.show');
+    
+    // Cambiar la ruta para listar usuarios (sin ID)
+    Route::get('/users', [UserController::class, 'index'])->name('users.index');
+    // Mantener la ruta para ver un usuario específico (con ID)
+    Route::get('/users/{id}', [UserController::class, 'show'])->name('users.show');
+    
     Route::put('/users/{id?}', [UserController::class, 'update'])->name('users.update');
     Route::delete('/users', [UserController::class, 'destroy'])->name('users.destroy');
     

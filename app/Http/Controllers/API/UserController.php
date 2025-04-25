@@ -7,10 +7,12 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use App\Http\Resources\UserResource;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class UserController extends Controller
 {
-    /**
+
+        /**
      * Register a new user
      * 
      * @param Request $request
@@ -43,24 +45,33 @@ class UserController extends Controller
     }
 
     /**
-     * Get user profile. If no ID is provided, returns the authenticated user's profile.
-     * If ID is provided, it checks permissions and returns the requested user.
+     * Display a listing of users or the authenticated user profile.
+     * Admin sees all users, regular users see only their profile.
      *
      * @param  Request $request
-     * @param  int|null $id
-     * @return \Illuminate\Http\JsonResponse
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection|\App\Http\Resources\UserResource
      */
-    public function show(Request $request, $id = null)
+    public function index(Request $request)
     {
-        // If no ID provided, return authenticated user
-        if ($id === null) {
-            return new UserResource($request->user());
+        if ($request->user()->hasRole('admin')) {
+            return UserResource::collection(User::all());
         }
         
-        // If ID is provided, check if user can view the requested profile
+        return UserResource::collection(User::where('id', $request->user()->id)->get());
+    }
+
+    /**
+     * Display the specified user.
+     *
+     * @param  Request $request
+     * @param  int  $id
+     * @return \Illuminate\Http\JsonResponse|\App\Http\Resources\UserResource
+     */
+    public function show(Request $request, $id)
+    {
         $requestedUser = User::findOrFail($id);
         
-        // Only allow if it's the same user or has admin role
+        // Solo permitir si es el mismo usuario o tiene rol de administrador
         if ($request->user()->id == $id || $request->user()->hasRole('admin')) {
             return new UserResource($requestedUser);
         }
@@ -111,11 +122,24 @@ class UserController extends Controller
      * Delete user account.
      *
      * @param  Request $request
+     * @param  int|null $id
      * @return \Illuminate\Http\JsonResponse
      */
-    public function destroy(Request $request)
+    public function destroy(Request $request, $id = null)
     {
-        $user = $request->user();
+        // If no ID provided, delete authenticated user
+        if ($id === null) {
+            $user = $request->user();
+        } else {
+            // If ID is provided, check permissions
+            $user = User::findOrFail($id);
+            
+            if ($request->user()->id != $id && !$request->user()->hasRole('admin')) {
+                return response()->json([
+                    'message' => 'You do not have permission to delete this account',
+                ], 403);
+            }
+        }
         
         // Revoke all tokens
         $user->tokens()->delete();
@@ -125,5 +149,4 @@ class UserController extends Controller
         
         return response()->json(null, 204);
     }
-    
 }
