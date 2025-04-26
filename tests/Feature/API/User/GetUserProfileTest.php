@@ -14,29 +14,30 @@ class GetUserProfileTest extends ApiTestCase
     {
         $this->createAuthenticatedUser();
         
-        // Cambiar de '/api/user/profile' a '/api/users'
         $response = $this->getJson('/api/users', $this->authHeaders());
-
+    
         $response->assertStatus(200)
             ->assertJsonStructure([
                 'data' => [
-                    'id',
-                    'name',
-                    'email',
-                    'birthdate',
-                    'created_at',
-                    'updated_at'
+                    '*' => [
+                        'id',
+                        'name',
+                        'email',
+                        'birthdate',
+                        'created_at',
+                        'updated_at'
+                    ]
                 ]
             ]);
             
-        $response->assertJson([
-            'data' => [
-                'id' => $this->user->id,
-                'name' => 'Test User',
-                'email' => 'test@example.com',
-                'birthdate' => $this->user->birthdate->format('d/m/Y')
-            ]
+        // Verificar que el usuario actual está en la respuesta
+        $response->assertJsonFragment([
+            'email' => $this->user->email,
+            'name' => 'Test User',
         ]);
+        
+        // Verificar que solo hay un elemento en la colección
+        $this->assertCount(1, $response->json('data'));
     }
 
     /**

@@ -6,13 +6,18 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
 use App\Http\Resources\UserResource;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use App\Services\RoleService;
 
 class UserController extends Controller
 {
+    protected $roleService;
+    
+    public function __construct(RoleService $roleService)
+    {
+        $this->roleService = $roleService;
+    }
 
-        /**
+    /**
      * Register a new user
      * 
      * @param Request $request
@@ -49,11 +54,11 @@ class UserController extends Controller
      * Admin sees all users, regular users see only their profile.
      *
      * @param  Request $request
-     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection|\App\Http\Resources\UserResource
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
      */
     public function index(Request $request)
     {
-        if ($request->user()->hasRole('admin')) {
+        if ($this->roleService->canViewAllUsers($request->user())) {
             return UserResource::collection(User::all());
         }
         
@@ -71,8 +76,7 @@ class UserController extends Controller
     {
         $requestedUser = User::findOrFail($id);
         
-        // Solo permitir si es el mismo usuario o tiene rol de administrador
-        if ($request->user()->id == $id || $request->user()->hasRole('admin')) {
+        if ($this->roleService->canViewUserProfile($request->user(), $id)) {
             return new UserResource($requestedUser);
         }
         
@@ -82,23 +86,22 @@ class UserController extends Controller
     }
 
     /**
-     * Update user profile. If no ID is provided, updates the authenticated user.
-     * If ID is provided, it checks permissions and updates the requested user.
+     * Update user profile.
      *
      * @param  Request $request
      * @param  int|null $id
-     * @return \Illuminate\Http\JsonResponse
+     * @return \Illuminate\Http\JsonResponse|\App\Http\Resources\UserResource
      */
     public function update(Request $request, $id = null)
     {
-        // If no ID provided, update authenticated user
+        // Si no se proporciona ID, actualizar el usuario autenticado
         if ($id === null) {
             $user = $request->user();
         } else {
-            // If ID is provided, check permissions
+            // Si se proporciona ID, verificar permisos
             $user = User::findOrFail($id);
             
-            if ($request->user()->id != $id && !$request->user()->hasRole('admin')) {
+            if (!$this->roleService->canUpdateUserProfile($request->user(), $user->id)) {
                 return response()->json([
                     'message' => 'You do not have permission to update this profile',
                 ], 403);
@@ -112,7 +115,7 @@ class UserController extends Controller
             'password' => ['sometimes', 'confirmed', 'min:8'],
         ]);
         
-        // If password is provided, it will be automatically hashed by the model
+        // Actualizar el usuario
         $user->update($validated);
         
         return new UserResource($user);
@@ -127,24 +130,24 @@ class UserController extends Controller
      */
     public function destroy(Request $request, $id = null)
     {
-        // If no ID provided, delete authenticated user
+        // Si no se proporciona ID, eliminar el usuario autenticado
         if ($id === null) {
             $user = $request->user();
         } else {
-            // If ID is provided, check permissions
+            // Si se proporciona ID, verificar permisos
             $user = User::findOrFail($id);
             
-            if ($request->user()->id != $id && !$request->user()->hasRole('admin')) {
+            if (!$this->roleService->canDeleteUser($request->user(), $user->id)) {
                 return response()->json([
                     'message' => 'You do not have permission to delete this account',
                 ], 403);
             }
         }
         
-        // Revoke all tokens
+        // Revocar todos los tokens
         $user->tokens()->delete();
         
-        // Delete the user
+        // Eliminar el usuario
         $user->delete();
         
         return response()->json(null, 204);
