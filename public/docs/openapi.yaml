@@ -1,0 +1,937 @@
+openapi: 3.0.3
+info:
+  title: Laravel Tarot API
+  description: REST API Tarot Deck Simulator with authentication and roles.
+  version: 1.0.0
+  contact:
+    email: lena@atajo.es
+    name: Lena Prado
+
+servers:
+  - url: http://localhost:8000/api
+    description: Local Server
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1
+        name:
+          type: string
+          example: "John Doe"
+        email:
+          type: string
+          format: email
+          example: "john@example.com"
+        birthdate:
+          type: string
+          format: date
+          example: "01/01/1990"
+        created_at:
+          type: string
+          format: date-time
+          example: "2023-01-01 00:00:00"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2023-01-01 00:00:00"
+        roles:
+          type: array
+          items:
+            type: string
+          example: ["user"]
+
+    Card:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1
+        type:
+          type: string
+          example: "major"
+        name:
+          type: string
+          example: "The Fool"
+        number:
+          type: integer
+          example: 0
+        suit:
+          type: string
+          nullable: true
+          example: null
+        element:
+          type: string
+          nullable: true
+          example: null
+        meaning:
+          type: string
+          example: "New beginnings, innocence, spontaneity"
+
+    DeckCard:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1
+        position:
+          type: integer
+          example: 1
+        card:
+          $ref: '#/components/schemas/Card'
+
+    Deck:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1
+        user_id:
+          type: integer
+          format: int64
+          example: 1
+        last_used:
+          type: string
+          format: date-time
+          example: "2023-01-01 00:00:00"
+        cards:
+          type: array
+          items:
+            $ref: '#/components/schemas/DeckCard'
+
+    Spread:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1
+        deck_id:
+          type: integer
+          format: int64
+          example: 1
+        spread_type:
+          type: string
+          example: "first"
+          enum: [first, second]
+        creation_date:
+          type: string
+          format: date-time
+          example: "2023-01-01 00:00:00"
+        cards:
+          type: array
+          items:
+            $ref: '#/components/schemas/DeckCard'
+
+    SpreadSummary:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1
+        deck_id:
+          type: integer
+          format: int64
+          example: 1
+        spread_type:
+          type: string
+          example: "first"
+          enum: [first, second]
+        creation_date:
+          type: string
+          format: date-time
+          example: "2023-01-01 00:00:00"
+        card_count:
+          type: integer
+          example: 1
+
+    ValidationError:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "The given data was invalid."
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+          example:
+            email: ["The email field is required."]
+            password: ["The password field is required."]
+
+security:
+  - bearerAuth: []
+
+paths:
+  /users:
+    post:
+      tags:
+        - Authentication
+      summary: Register new user
+      description: Creates a new user account with 'user' role by default and assigns a tarot card deck
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - email
+                - password
+                - password_confirmation
+                - birthdate
+              properties:
+                name:
+                  type: string
+                  example: "John Doe"
+                email:
+                  type: string
+                  format: email
+                  example: "john@example.com"
+                password:
+                  type: string
+                  format: password
+                  example: "password123"
+                password_confirmation:
+                  type: string
+                  format: password
+                  example: "password123"
+                birthdate:
+                  type: string
+                  format: date
+                  example: "1990-01-01"
+      responses:
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/User'
+                  token:
+                    type: string
+                    example: "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9..."
+        '422':
+          description: Invalid input data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+    
+    get:
+      tags:
+        - Users
+      summary: Get list of users or own profile
+      description: Administrators see all users, normal users only see their own profile
+      responses:
+        '200':
+          description: List of users or own profile
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/User'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Unauthenticated"
+
+    put:
+      tags:
+        - Users
+      summary: Update own profile
+      description: Updates the authenticated user's profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: "John Doe Updated"
+                email:
+                  type: string
+                  format: email
+                  example: "johnupdated@example.com"
+                birthdate:
+                  type: string
+                  format: date
+                  example: "1990-01-01"
+                password:
+                  type: string
+                  format: password
+                  example: "newpassword123"
+                password_confirmation:
+                  type: string
+                  format: password
+                  example: "newpassword123"
+      responses:
+        '200':
+          description: Profile updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/User'
+        '422':
+          description: Invalid input data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+    
+    delete:
+      tags:
+        - Users
+      summary: Delete own account
+      description: Deletes the authenticated user's account
+      responses:
+        '204':
+          description: Account deleted successfully
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Unauthenticated"
+  
+  /users/{id}:
+    get:
+      tags:
+        - Users
+      summary: Get user profile
+      description: Shows a specific user's profile. Normal users can only view their own profile.
+      parameters:
+        - name: id
+          in: path
+          description: User ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: User profile
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/User'
+        '403':
+          description: Access denied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "You do not have permission to view this profile"
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "User not found"
+    
+    put:
+      tags:
+        - Users
+      summary: Update user profile
+      description: Updates a user's profile. Normal users can only update their own profile.
+      parameters:
+        - name: id
+          in: path
+          description: User ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: "John Doe Updated"
+                email:
+                  type: string
+                  format: email
+                  example: "johnupdated@example.com"
+                birthdate:
+                  type: string
+                  format: date
+                  example: "1990-01-01"
+                password:
+                  type: string
+                  format: password
+                  example: "newpassword123"
+                password_confirmation:
+                  type: string
+                  format: password
+                  example: "newpassword123"
+      responses:
+        '200':
+          description: Profile updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/User'
+        '403':
+          description: Access denied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "You do not have permission to update this profile"
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "User not found"
+        '422':
+          description: Invalid input data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+    
+    delete:
+      tags:
+        - Users
+      summary: Delete user account
+      description: Deletes a user's account. Normal users can only delete their own account.
+      parameters:
+        - name: id
+          in: path
+          description: User ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '204':
+          description: Account deleted successfully
+        '403':
+          description: Access denied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "You do not have permission to delete this account"
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "User not found"
+  
+  /tokens:
+    post:
+      tags:
+        - Authentication
+      summary: Login
+      description: Authenticates the user and returns an access token
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: "john@example.com"
+                password:
+                  type: string
+                  format: password
+                  example: "password123"
+      responses:
+        '200':
+          description: Successful login
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/User'
+                  token:
+                    type: string
+                    example: "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9..."
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Invalid credentials"
+    
+    delete:
+      tags:
+        - Authentication
+      summary: Logout
+      description: Revokes the current user's access token
+      responses:
+        '200':
+          description: Successful logout
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Successfully logged out"
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Unauthenticated"
+  
+  /decks:
+    get:
+      tags:
+        - Decks
+      summary: Get user's deck
+      description: Returns the authenticated user's tarot card deck with all its cards
+      responses:
+        '200':
+          description: Deck retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Deck'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Unauthorized"
+    
+    put:
+      tags:
+        - Decks
+      summary: Update deck (shuffle or cut)
+      description: Performs actions on the authenticated user's deck (shuffle or cut)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - action_type
+              properties:
+                action_type:
+                  type: string
+                  enum: [shuffle, cut]
+                  example: "shuffle"
+                  description: "Type of action to perform: shuffle or cut"
+      responses:
+        '200':
+          description: Action performed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      deck_id:
+                        type: integer
+                        format: int64
+                        example: 1
+                      cards:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/DeckCard'
+                      cut_info:
+                        type: object
+                        properties:
+                          first_half:
+                            type: array
+                            items:
+                              type: integer
+                          second_half:
+                            type: array
+                            items:
+                              type: integer
+        '400':
+          description: Invalid action type
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Invalid action type"
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Unauthenticated"
+        '422':
+          description: Invalid input data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+  
+  /spreads:
+    get:
+      tags:
+        - Spreads
+      summary: Get user's spreads
+      description: Returns the authenticated user's tarot spreads or all spreads for administrators
+      parameters:
+        - name: spread_type
+          in: query
+          description: Filter by spread type (first for one card, second for three cards)
+          required: false
+          schema:
+            type: string
+            enum: [first, second]
+      responses:
+        '200':
+          description: Spreads retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      deck_id:
+                        type: integer
+                        format: int64
+                        example: 1
+                      spreads:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/SpreadSummary'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Unauthenticated"
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Failed to fetch spreads"
+                  error:
+                    type: string
+    
+    post:
+      tags:
+        - Spreads
+      summary: Create a new spread
+      description: Creates a new tarot spread for the authenticated user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - spread_type
+              properties:
+                spread_type:
+                  type: string
+                  enum: [first, second]
+                  example: "first"
+                  description: "Spread type: first for one card, second for three cards"
+      responses:
+        '201':
+          description: Spread created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Spread'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Unauthenticated"
+        '422':
+          description: Invalid input data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Failed to create spread"
+                  error:
+                    type: string
+  
+  /spreads/{id}:
+    get:
+      tags:
+        - Spreads
+      summary: Get spread details
+      description: Returns detailed information about a specific spread. Normal users can only view their own spreads.
+      parameters:
+        - name: id
+          in: path
+          description: Spread ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Spread retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Spread'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Unauthenticated"
+        '403':
+          description: Access denied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "You do not have permission to view this spread."
+        '404':
+          description: Spread not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Spread not found."
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Failed to fetch spread"
+                  error:
+                    type: string
+    
+    delete:
+      tags:
+        - Spreads
+      summary: Delete a spread
+      description: Deletes a specific spread. Normal users can only delete their own spreads.
+      parameters:
+        - name: id
+          in: path
+          description: Spread ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '204':
+          description: Spread deleted successfully
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Unauthenticated"
+        '403':
+          description: Access denied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "You do not have permission to delete this spread."
+        '404':
+          description: Spread not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Spread not found."
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Failed to delete spread"
+                  error:
+                    type: string
+  
+  /test:
+    get:
+      tags:
+        - Test
+      summary: Test API
+      description: Test endpoint to verify if the API is working
+      security: []
+      responses:
+        '200':
+          description: API working correctly
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "API is working!"
+                  status:
+                    type: string
+                    example: "success"
+                  timestamp:
+                    type: string
+                    format: date-time
+                    example: "2023-01-01 00:00:00"
