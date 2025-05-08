@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             RoleSeeder::class,
             PassportSeeder::class,
+            UserSeeder::class,
             TarotCardsSeeder::class,
         ]);
 
