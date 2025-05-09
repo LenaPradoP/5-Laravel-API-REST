@@ -41,8 +41,6 @@ This project consists of a REST API to simulate a tarot deck for performing and 
    ```
 
 4. **Create and configure the .env file** 
-
-5. **Create and configure the .env file:**
    ```
    APP_NAME="Deck Simulator API"
    APP_ENV=local
@@ -73,26 +71,26 @@ This project consists of a REST API to simulate a tarot deck for performing and 
    MAIL_MAILER=log
    ```
 
-6. **Create the .env.example file:**
+5. **Create the .env.example file:**
    Make a copy of your working .env configuration (after removing any secrets) and save it as .env.example for other developers.
 
-7. **Generate an application key:**
+6. **Generate an application key:**
    ```bash
    php artisan key:generate
    ```
 
-8. **Create the database in MySQL:**
+7. **Create the database in MySQL:**
    - Open XAMPP and make sure Apache and MySQL services are running
    - Access [http://localhost/phpmyadmin](http://localhost/phpmyadmin)
    - Create a new database called `deck_simulator_api`
 
-9. **Generate Passport keys:**
+8. **Generate Passport keys:**
    ```bash
    php artisan passport:keys
    ```
    This will generate the encryption keys needed for creating secure access tokens.
 
-10. **Run migrations and seeders:**
+9. **Run migrations and seeders:**
    ```bash
    php artisan migrate --seed
    ```
