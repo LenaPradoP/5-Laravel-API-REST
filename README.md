@@ -40,61 +40,32 @@ This project consists of a REST API to simulate a tarot deck for performing and 
    composer install
    ```
 
-4. **Create and configure the .env file** 
+4. **Create the .env file** 
    ```
-   APP_NAME="Deck Simulator API"
-   APP_ENV=local
-   APP_KEY=base64:YOUR_GENERATED_KEY
-   APP_DEBUG=true
-   APP_URL=http://localhost
-   
-   LOG_CHANNEL=stack
-   LOG_LEVEL=debug
-   
-   DB_CONNECTION=mysql
-   DB_HOST=127.0.0.1
-   DB_PORT=3306
-   DB_DATABASE=deck_simulator_api
-   DB_USERNAME=root
-   DB_PASSWORD=
-   
-   # For running tests with in-memory SQLite
-   # DB_CONNECTION=sqlite
-   # DB_DATABASE=:memory:
-   
-   SESSION_DRIVER=file
-   SESSION_LIFETIME=120
-   
-   CACHE_DRIVER=file
-   
-   # No need to configure email for the API
-   MAIL_MAILER=log
+    cp .env.example .env
    ```
-
-5. **Create the .env.example file:**
-   Make a copy of your working .env configuration (after removing any secrets) and save it as .env.example for other developers.
-
-6. **Generate an application key:**
+   
+5. **Generate an application key:**
    ```bash
    php artisan key:generate
    ```
 
-7. **Create the database in MySQL:**
+6. **Create the database in MySQL:**
    - Open XAMPP and make sure Apache and MySQL services are running
    - Access [http://localhost/phpmyadmin](http://localhost/phpmyadmin)
    - Create a new database called `deck_simulator_api`
 
-8. **Generate Passport keys:**
+7. **Generate Passport keys:**
    ```bash
    php artisan passport:keys
    ```
    This will generate the encryption keys needed for creating secure access tokens.
 
-9. **Run migrations and seeders:**
+8. **Run migrations and seeders:**
    ```bash
-   php artisan migrate --seed
+   php artisan migrate:fresh --seed
    ```
-   This will create the necessary tables and load the tarot card data, roles, and permissions.
+   This will create the necessary tables and seed the database, loading the tarot cards, roles, permissions and test users.
 
 ## **▶️ Execution**
 
