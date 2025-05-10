@@ -1,0 +1,2207 @@
+{
+	"info": {
+		"_postman_id": "10333c18-ba4a-463c-adeb-da9a6e7aced6",
+		"name": "Deck Simulator",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "43877991"
+	},
+	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Registre",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Save token if registration is successful",
+									"if (pm.response.code === 201 || pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    ",
+									"    // Save token",
+									"    if (jsonData.token) {",
+									"        pm.environment.set(\"token\", jsonData.token);",
+									"        console.log(\"Token saved in environment variable\");",
+									"    }",
+									"    ",
+									"    // Save user ID",
+									"    if (jsonData.data && jsonData.data.id) {",
+									"        pm.environment.set(\"userId\", jsonData.data.id);",
+									"        console.log(\"User ID saved in environment variable\");",
+									"    }",
+									"}",
+									"",
+									"// Validate response structure",
+									"pm.test(\"Response contains user data and token\", function() {",
+									"    var jsonData = pm.response.json();",
+									"    ",
+									"    pm.expect(jsonData).to.have.property(\"data\");",
+									"    pm.expect(jsonData).to.have.property(\"token\");",
+									"    pm.expect(jsonData.data).to.have.property(\"id\");",
+									"    pm.expect(jsonData.data).to.have.property(\"name\");",
+									"    pm.expect(jsonData.data).to.have.property(\"email\");",
+									"    pm.expect(jsonData.data).to.have.property(\"birthdate\");",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Test User\",\n    \"email\": \"testuser@example.com\",\n    \"password\": \"password123\",\n    \"password_confirmation\": \"password123\",\n    \"birthdate\": \"1990-01-01\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/users",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"users"
+							]
+						},
+						"description": "Registers a new user in the system and returns an access token.\n\n  \nThe user is created with the default 'user' role and is automatically assigned a tarot deck."
+					},
+					"response": []
+				},
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Save token if login is successful",
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    ",
+									"    // Save token",
+									"    if (jsonData.token) {",
+									"        pm.environment.set(\"token\", jsonData.token);",
+									"        console.log(\"Token saved in environment variable\");",
+									"    }",
+									"    ",
+									"    // Save user ID",
+									"    if (jsonData.data && jsonData.data.id) {",
+									"        pm.environment.set(\"userId\", jsonData.data.id);",
+									"        console.log(\"User ID saved in environment variable\");",
+									"    }",
+									"}",
+									"",
+									"// Validate response structure",
+									"pm.test(\"Response contains token and user data\", function() {",
+									"    var jsonData = pm.response.json();",
+									"    ",
+									"    pm.expect(jsonData).to.have.property(\"token\");",
+									"    pm.expect(jsonData).to.have.property(\"data\");",
+									"    pm.expect(jsonData.data).to.have.property(\"id\");",
+									"    pm.expect(jsonData.data).to.have.property(\"name\");",
+									"    pm.expect(jsonData.data).to.have.property(\"email\");",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"testuser@example.com\",\n    \"password\": \"password123\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/tokens",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"tokens"
+							]
+						},
+						"description": "Authenticates a user and returns an access token.  \nThis token must be included as a Bearer token in the Authorization header for protected endpoints."
+					},
+					"response": []
+				},
+				{
+					"name": "Admin Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    ",
+									"    // Save token with a different name for admin",
+									"    if (jsonData.token) {",
+									"        pm.environment.set(\"admin_token\", jsonData.token);",
+									"        console.log(\"Admin token saved in environment variable\");",
+									"    }    ",
+									"    // Save user ID",
+									"    if (jsonData.data && jsonData.data.id) {",
+									"        pm.environment.set(\"userId\", jsonData.data.id);",
+									"        console.log(\"User ID saved in environment variable\");",
+									"    }",
+									"}",
+									"",
+									"// Validate response structure",
+									"pm.test(\"Response contains token and user data\", function() {",
+									"    var jsonData = pm.response.json();",
+									"    ",
+									"    pm.expect(jsonData).to.have.property(\"token\");",
+									"    pm.expect(jsonData).to.have.property(\"data\");",
+									"    pm.expect(jsonData.data).to.have.property(\"id\");",
+									"    pm.expect(jsonData.data).to.have.property(\"name\");",
+									"    pm.expect(jsonData.data).to.have.property(\"email\");",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"admin@example.com\",\n    \"password\": \"password123\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/tokens",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"tokens"
+							]
+						},
+						"description": "Authenticates a user and returns an access token.  \nThis token must be included as a Bearer token in the Authorization header for protected endpoints."
+					},
+					"response": []
+				},
+				{
+					"name": "Logout",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Verify successful logout",
+									"pm.test(\"Logout successful\", function() {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// Clear token from environment after successful logout",
+									"if (pm.response.code === 200) {",
+									"    pm.environment.unset(\"token\");",
+									"    console.log(\"Token removed from environment variables\");",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "",
+								"value": "",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "",
+								"value": "",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/tokens",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"tokens"
+							]
+						},
+						"description": "Logs out the user by revoking the current access token.  \nRequires authentication with a valid token."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "User",
+			"item": [
+				{
+					"name": "Profile",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test for successful response",
+									"pm.test(\"Status code is 200\", function() {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// Test for valid JSON response",
+									"pm.test(\"Response is valid JSON\", function() {",
+									"    pm.response.to.be.json;",
+									"});",
+									"",
+									"// Test structure based on role (admin or user)",
+									"pm.test(\"Response has correct structure\", function() {",
+									"    var jsonData = pm.response.json();",
+									"    ",
+									"    // If response is an array, user is likely an admin getting all users",
+									"    if (Array.isArray(jsonData.data)) {",
+									"        pm.test(\"Admin: List of users returned\", function() {",
+									"            pm.expect(jsonData).to.have.property('data').that.is.an('array');",
+									"        });",
+									"    } ",
+									"    // If response is an object, it's a single user profile",
+									"    else {",
+									"        pm.test(\"User profile returned\", function() {",
+									"            pm.expect(jsonData).to.have.property('data');",
+									"            pm.expect(jsonData.data).to.have.property('id');",
+									"            pm.expect(jsonData.data).to.have.property('name');",
+									"            pm.expect(jsonData.data).to.have.property('email');",
+									"        });",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "",
+								"value": "",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/users",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"users"
+							]
+						},
+						"description": "Retrieves the profile information of the authenticated user.  \nFor regular users, this returns their own profile."
+					},
+					"response": []
+				},
+				{
+					"name": "Profile",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test for successful response",
+									"pm.test(\"Status code is 200\", function() {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// Test for valid JSON response",
+									"pm.test(\"Response is valid JSON\", function() {",
+									"    pm.response.to.be.json;",
+									"});",
+									"",
+									"// Test structure of response",
+									"pm.test(\"Response has correct structure\", function() {",
+									"    var jsonData = pm.response.json();",
+									"    ",
+									"    pm.expect(jsonData).to.have.property('data');",
+									"    pm.expect(jsonData.data).to.have.property('id');",
+									"    pm.expect(jsonData.data).to.have.property('name');",
+									"    pm.expect(jsonData.data).to.have.property('email');",
+									"});",
+									"",
+									"// Test that values were actually updated",
+									"pm.test(\"Values were updated correctly\", function() {",
+									"    var jsonData = pm.response.json();",
+									"    var requestData = JSON.parse(pm.request.body.raw);",
+									"    ",
+									"    // Check that the values in the response match what we sent",
+									"    // Only check fields that were in the request",
+									"    if (requestData.name) {",
+									"        pm.expect(jsonData.data.name).to.equal(requestData.name);",
+									"    }",
+									"    ",
+									"    if (requestData.email) {",
+									"        pm.expect(jsonData.data.email).to.equal(requestData.email);",
+									"    }",
+									"    ",
+									"    if (requestData.birthdate) {",
+									"        // Handle different date formats",
+									"        let requestDate = new Date(requestData.birthdate);",
+									"        let responseDate = jsonData.data.birthdate;",
+									"        ",
+									"        // Convert the request date to a format that can be compared",
+									"        let day = requestDate.getDate().toString().padStart(2, '0');",
+									"        let month = (requestDate.getMonth() + 1).toString().padStart(2, '0');",
+									"        let year = requestDate.getFullYear();",
+									"        ",
+									"        let formattedRequestDate = `${day}/${month}/${year}`;",
+									"        ",
+									"        pm.expect(responseDate).to.equal(formattedRequestDate);",
+									"        console.log(`Comparing dates: Expected ${formattedRequestDate}, Got ${responseDate}`);",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "",
+								"value": "",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Update Test 5\",\n  \"email\": \"update5@example.com\",\n  \"birthdate\": \"1995-05-05\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/users",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"users"
+							]
+						},
+						"description": "Updates the user profile information.  \nFor regular users, this endpoint only allows updating their own profile."
+					},
+					"response": []
+				},
+				{
+					"name": "Profile",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test for successful response",
+									"pm.test(\"Status code is 204 (No Content)\", function() {",
+									"    pm.response.to.have.status(204);",
+									"});",
+									"",
+									"// Alternative test if your API returns 200 instead of 204",
+									"pm.test(\"Status code is successful\", function() {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 204]);",
+									"});",
+									"",
+									"// If the user is deleting their own account, clear the token",
+									"if (pm.request.url.path.join('/').includes('users/' + pm.environment.get('userId')) || ",
+									"    !pm.request.url.path.join('/').includes('users/')) {",
+									"    pm.environment.unset(\"token\");",
+									"    console.log(\"Token removed after account deletion\");",
+									"}",
+									"",
+									"// Check if response is empty (for 204) or contains a success message (for 200)",
+									"if (pm.response.code === 200 && pm.response.text()) {",
+									"    pm.test(\"Response contains success message\", function() {",
+									"        try {",
+									"            var jsonData = pm.response.json();",
+									"            pm.expect(jsonData).to.have.property('message');",
+									"        } catch (e) {",
+									"            // If not JSON, that's fine for a 204 or empty response",
+									"        }",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "",
+								"value": "",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/users",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"users"
+							]
+						},
+						"description": "Deletes a user account.  \nFor regular users, this endpoint only allows deleting their own account.  \nAfter deletion, all access tokens for the user are revoked."
+					},
+					"response": []
+				}
+			],
+			"auth": {
+				"type": "bearer",
+				"bearer": [
+					{
+						"key": "token",
+						"value": "{{token}}",
+						"type": "string"
+					}
+				]
+			},
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "Deck",
+			"item": [
+				{
+					"name": "Deck",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test for successful response",
+									"pm.test(\"Status code is 200\", function() {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// Test for valid JSON response",
+									"pm.test(\"Response is valid JSON\", function() {",
+									"    pm.response.to.be.json;",
+									"});",
+									"",
+									"// Test structure of response",
+									"pm.test(\"Response has correct structure\", function() {",
+									"    var jsonData = pm.response.json();",
+									"    ",
+									"    pm.expect(jsonData).to.have.property('data');",
+									"    pm.expect(jsonData.data).to.have.property('id');",
+									"    pm.expect(jsonData.data).to.have.property('user_id');",
+									"    pm.expect(jsonData.data).to.have.property('last_used');",
+									"    ",
+									"    // Check that cards array exists and has items",
+									"    pm.expect(jsonData.data).to.have.property('cards').that.is.an('array');",
+									"    ",
+									"    // Verify there are cards in the deck (standard tarot has 78 cards)",
+									"    pm.expect(jsonData.data.cards.length).to.be.at.least(1);",
+									"    ",
+									"    // Check structure of the first card",
+									"    if (jsonData.data.cards.length > 0) {",
+									"        pm.expect(jsonData.data.cards[0]).to.have.property('id');",
+									"        pm.expect(jsonData.data.cards[0]).to.have.property('position');",
+									"        pm.expect(jsonData.data.cards[0]).to.have.property('card');",
+									"        pm.expect(jsonData.data.cards[0].card).to.have.property('id');",
+									"        pm.expect(jsonData.data.cards[0].card).to.have.property('type');",
+									"        pm.expect(jsonData.data.cards[0].card).to.have.property('name');",
+									"        pm.expect(jsonData.data.cards[0].card).to.have.property('meaning');",
+									"    }",
+									"});",
+									"",
+									"// Test for a complete deck",
+									"pm.test(\"Deck contains the expected number of cards\", function() {",
+									"    var jsonData = pm.response.json();",
+									"    ",
+									"    // A standard tarot deck has 78 cards",
+									"    pm.expect(jsonData.data.cards.length).to.equal(78);",
+									"});",
+									"",
+									"// Test for proper card ordering by position",
+									"pm.test(\"Cards are ordered by position\", function() {",
+									"    var jsonData = pm.response.json();",
+									"    ",
+									"    for (let i = 0; i < jsonData.data.cards.length - 1; i++) {",
+									"        pm.expect(jsonData.data.cards[i].position).to.equal(i + 1);",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "",
+								"value": "",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/decks",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"decks"
+							]
+						},
+						"description": "Retrieves the authenticated user's tarot deck with all 78 cards and their current positions.  \nThe deck is unique to each user and maintains the order of cards for tarot readings."
+					},
+					"response": []
+				},
+				{
+					"name": "Shuffle Deck",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test for successful response",
+									"pm.test(\"Status code is 200\", function() {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// Test for valid JSON response",
+									"pm.test(\"Response is valid JSON\", function() {",
+									"    pm.response.to.be.json;",
+									"});",
+									"",
+									"// Test success flag",
+									"pm.test(\"Response indicates success\", function() {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('success', true);",
+									"});",
+									"",
+									"// Test structure of response",
+									"pm.test(\"Response has correct structure\", function() {",
+									"    var jsonData = pm.response.json();",
+									"    ",
+									"    pm.expect(jsonData).to.have.property('data');",
+									"    pm.expect(jsonData.data).to.have.property('deck_id');",
+									"    ",
+									"    // Check that cards array exists and has items",
+									"    pm.expect(jsonData.data).to.have.property('cards').that.is.an('array');",
+									"    ",
+									"    // Verify there are 78 cards in the deck (standard tarot)",
+									"    pm.expect(jsonData.data.cards.length).to.equal(78);",
+									"    ",
+									"    // Check structure of cards",
+									"    if (jsonData.data.cards.length > 0) {",
+									"        pm.expect(jsonData.data.cards[0]).to.have.property('id');",
+									"        pm.expect(jsonData.data.cards[0]).to.have.property('position');",
+									"        pm.expect(jsonData.data.cards[0]).to.have.property('card');",
+									"        pm.expect(jsonData.data.cards[0].card).to.have.property('id');",
+									"        pm.expect(jsonData.data.cards[0].card).to.have.property('name');",
+									"        pm.expect(jsonData.data.cards[0].card).to.have.property('meaning');",
+									"    }",
+									"});",
+									"",
+									"// Test that positions are sequential from 1 to 78",
+									"pm.test(\"Card positions are sequential from 1 to 78\", function() {",
+									"    var jsonData = pm.response.json();",
+									"    ",
+									"    let positions = jsonData.data.cards.map(card => card.position).sort((a, b) => a - b);",
+									"    ",
+									"    // Check if positions are sequential from 1 to 78",
+									"    for (let i = 0; i < positions.length; i++) {",
+									"        pm.expect(positions[i]).to.equal(i + 1);",
+									"    }",
+									"});",
+									"",
+									"// Store the shuffled positions to compare later",
+									"if (pm.response.code === 200) {",
+									"    let jsonData = pm.response.json();",
+									"    ",
+									"    if (jsonData.data && jsonData.data.cards) {",
+									"        // Extract card IDs and their positions",
+									"        let cardPositions = jsonData.data.cards.map(card => {",
+									"            return {",
+									"                id: card.id,",
+									"                cardId: card.card.id,",
+									"                position: card.position",
+									"            };",
+									"        });",
+									"        ",
+									"        // Store in environment variable for later comparison",
+									"        pm.environment.set(\"lastShuffledPositions\", JSON.stringify(cardPositions));",
+									"        console.log(\"Stored shuffled positions for future comparison\");",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "",
+								"value": "",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "",
+								"value": "",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"action_type\": \"shuffle\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/decks",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"decks"
+							]
+						},
+						"description": "Shuffles the user's tarot deck by randomizing the positions of all 78 cards."
+					},
+					"response": []
+				},
+				{
+					"name": "Cut Deck",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test for successful response",
+									"pm.test(\"Status code is 200\", function() {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// Test for valid JSON response",
+									"pm.test(\"Response is valid JSON\", function() {",
+									"    pm.response.to.be.json;",
+									"});",
+									"",
+									"// Test success flag",
+									"pm.test(\"Response indicates success\", function() {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('success', true);",
+									"});",
+									"",
+									"// Test structure of response",
+									"pm.test(\"Response has correct structure\", function() {",
+									"    var jsonData = pm.response.json();",
+									"    ",
+									"    pm.expect(jsonData).to.have.property('data');",
+									"    pm.expect(jsonData.data).to.have.property('deck_id');",
+									"    ",
+									"    // Check that cards array exists and has items",
+									"    pm.expect(jsonData.data).to.have.property('cards').that.is.an('array');",
+									"    ",
+									"    // Verify there are 78 cards in the deck (standard tarot)",
+									"    pm.expect(jsonData.data.cards.length).to.equal(78);",
+									"    ",
+									"    // Check structure of cards",
+									"    if (jsonData.data.cards.length > 0) {",
+									"        pm.expect(jsonData.data.cards[0]).to.have.property('id');",
+									"        pm.expect(jsonData.data.cards[0]).to.have.property('position');",
+									"        pm.expect(jsonData.data.cards[0]).to.have.property('card');",
+									"        pm.expect(jsonData.data.cards[0].card).to.have.property('id');",
+									"        pm.expect(jsonData.data.cards[0].card).to.have.property('name');",
+									"        pm.expect(jsonData.data.cards[0].card).to.have.property('meaning');",
+									"    }",
+									"    ",
+									"    // Check that cut info is provided",
+									"    pm.expect(jsonData.data).to.have.property('cut_info');",
+									"    pm.expect(jsonData.data.cut_info).to.have.property('first_half').that.is.an('array');",
+									"    pm.expect(jsonData.data.cut_info).to.have.property('second_half').that.is.an('array');",
+									"    ",
+									"    // The total number of cards in both halves should equal 78",
+									"    pm.expect(jsonData.data.cut_info.first_half.length + jsonData.data.cut_info.second_half.length).to.equal(78);",
+									"});",
+									"",
+									"// Test that positions are sequential from 1 to 78",
+									"pm.test(\"Card positions are sequential from 1 to 78\", function() {",
+									"    var jsonData = pm.response.json();",
+									"    ",
+									"    let positions = jsonData.data.cards.map(card => card.position).sort((a, b) => a - b);",
+									"    ",
+									"    // Check if positions are sequential from 1 to 78",
+									"    for (let i = 0; i < positions.length; i++) {",
+									"        pm.expect(positions[i]).to.equal(i + 1);",
+									"    }",
+									"});",
+									"",
+									"// Compare with previous positions if available",
+									"pm.test(\"Cut operation has changed card order\", function() {",
+									"    var jsonData = pm.response.json();",
+									"    var previousPositions = pm.environment.get(\"lastShuffledPositions\");",
+									"    ",
+									"    if (previousPositions) {",
+									"        previousPositions = JSON.parse(previousPositions);",
+									"        ",
+									"        // Extract current positions",
+									"        let currentPositions = jsonData.data.cards.map(card => {",
+									"            return {",
+									"                id: card.id,",
+									"                cardId: card.card.id,",
+									"                position: card.position",
+									"            };",
+									"        });",
+									"        ",
+									"        // Check if at least some positions have changed",
+									"        let changesFound = false;",
+									"        for (let i = 0; i < previousPositions.length; i++) {",
+									"            const prev = previousPositions[i];",
+									"            const curr = currentPositions.find(c => c.id === prev.id);",
+									"            ",
+									"            if (curr && curr.position !== prev.position) {",
+									"                changesFound = true;",
+									"                break;",
+									"            }",
+									"        }",
+									"        ",
+									"        pm.expect(changesFound).to.be.true;",
+									"        ",
+									"        // Update stored positions for future comparison",
+									"        pm.environment.set(\"lastShuffledPositions\", JSON.stringify(currentPositions));",
+									"    } else {",
+									"        // If no previous positions stored, just store current ones",
+									"        let currentPositions = jsonData.data.cards.map(card => {",
+									"            return {",
+									"                id: card.id,",
+									"                cardId: card.card.id,",
+									"                position: card.position",
+									"            };",
+									"        });",
+									"        ",
+									"        pm.environment.set(\"lastShuffledPositions\", JSON.stringify(currentPositions));",
+									"        pm.expect(true).to.be.true; // Skip this test if no previous positions",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "",
+								"value": "",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "",
+								"value": "",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"action_type\": \"cut\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/decks",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"decks"
+							]
+						},
+						"description": "Cuts the user's tarot deck by dividing it into two halves and swapping their positions."
+					},
+					"response": []
+				}
+			],
+			"auth": {
+				"type": "bearer",
+				"bearer": [
+					{
+						"key": "token",
+						"value": "{{token}}",
+						"type": "string"
+					}
+				]
+			},
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "Spreads",
+			"item": [
+				{
+					"name": "Spread One Card",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test for successful response",
+									"pm.test(\"Status code is 201 Created\", function() {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"// Alternative test if your API returns 200 instead of 201",
+									"pm.test(\"Status is success\", function() {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+									"});",
+									"",
+									"// Test for valid JSON response",
+									"pm.test(\"Response is valid JSON\", function() {",
+									"    pm.response.to.be.json;",
+									"});",
+									"",
+									"// Test structure of response",
+									"pm.test(\"Response has correct structure\", function() {",
+									"    var jsonData = pm.response.json();",
+									"    ",
+									"    // Check for spread properties",
+									"    pm.expect(jsonData).to.have.property('id');",
+									"    pm.expect(jsonData).to.have.property('deck_id');",
+									"    pm.expect(jsonData).to.have.property('spread_type');",
+									"    pm.expect(jsonData).to.have.property('creation_date');",
+									"    ",
+									"    // Check for cards array",
+									"    pm.expect(jsonData).to.have.property('cards').that.is.an('array');",
+									"    ",
+									"    // Verify cards have the correct structure",
+									"    if (jsonData.cards.length > 0) {",
+									"        pm.expect(jsonData.cards[0]).to.have.property('id');",
+									"        pm.expect(jsonData.cards[0]).to.have.property('position');",
+									"        pm.expect(jsonData.cards[0]).to.have.property('card');",
+									"        pm.expect(jsonData.cards[0].card).to.have.property('id');",
+									"        pm.expect(jsonData.cards[0].card).to.have.property('name');",
+									"        pm.expect(jsonData.cards[0].card).to.have.property('meaning');",
+									"    }",
+									"    ",
+									"    // Verify the number of cards matches the spread type",
+									"    const spreadType = jsonData.spread_type;",
+									"    if (spreadType === 'first') {",
+									"        pm.expect(jsonData.cards.length).to.equal(1);",
+									"    } else if (spreadType === 'second') {",
+									"        pm.expect(jsonData.cards.length).to.equal(3);",
+									"    }",
+									"});",
+									"",
+									"// Store the created spread ID for future requests",
+									"if (pm.response.code === 201 || pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData && jsonData.id) {",
+									"        pm.environment.set(\"lastSpreadId\", jsonData.id);",
+									"        console.log(\"Spread ID saved: \" + jsonData.id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"spread_type\": \"first\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/spreads",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"spreads"
+							]
+						},
+						"description": "Creates a one card tarot spread for the authenticated user.  \nDraws a card from the user's deck based on the specified spread type."
+					},
+					"response": []
+				},
+				{
+					"name": "Spread Three Cards",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test for successful response",
+									"pm.test(\"Status code is 201 Created\", function() {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"// Alternative test if your API returns 200 instead of 201",
+									"pm.test(\"Status is success\", function() {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+									"});",
+									"",
+									"// Test for valid JSON response",
+									"pm.test(\"Response is valid JSON\", function() {",
+									"    pm.response.to.be.json;",
+									"});",
+									"",
+									"// Test structure of response",
+									"pm.test(\"Response has correct structure\", function() {",
+									"    var jsonData = pm.response.json();",
+									"    ",
+									"    // Check for spread properties",
+									"    pm.expect(jsonData).to.have.property('id');",
+									"    pm.expect(jsonData).to.have.property('deck_id');",
+									"    pm.expect(jsonData).to.have.property('spread_type');",
+									"    pm.expect(jsonData).to.have.property('creation_date');",
+									"    ",
+									"    // Check for cards array",
+									"    pm.expect(jsonData).to.have.property('cards').that.is.an('array');",
+									"    ",
+									"    // For three-card spread, verify there are exactly 3 cards",
+									"    pm.expect(jsonData.cards.length).to.equal(3);",
+									"    pm.expect(jsonData.spread_type).to.equal('second');",
+									"    ",
+									"    // Verify cards have the correct structure",
+									"    for (let i = 0; i < jsonData.cards.length; i++) {",
+									"        pm.expect(jsonData.cards[i]).to.have.property('id');",
+									"        pm.expect(jsonData.cards[i]).to.have.property('position');",
+									"        pm.expect(jsonData.cards[i]).to.have.property('card');",
+									"        pm.expect(jsonData.cards[i].card).to.have.property('id');",
+									"        pm.expect(jsonData.cards[i].card).to.have.property('name');",
+									"        pm.expect(jsonData.cards[i].card).to.have.property('meaning');",
+									"    }",
+									"    ",
+									"    // Verify that each card has a unique position",
+									"    let positions = jsonData.cards.map(card => card.position);",
+									"    let uniquePositions = [...new Set(positions)];",
+									"    pm.expect(uniquePositions.length).to.equal(3);",
+									"});",
+									"",
+									"// Store the created spread ID for future requests",
+									"if (pm.response.code === 201 || pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData && jsonData.id) {",
+									"        pm.environment.set(\"lastSpreadId\", jsonData.id);",
+									"        console.log(\"Spread ID saved: \" + jsonData.id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"spread_type\": \"second\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/spreads",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"spreads"
+							]
+						},
+						"description": "Creates a three-card tarot spread for the authenticated user."
+					},
+					"response": []
+				},
+				{
+					"name": "Spreads",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test for successful response",
+									"pm.test(\"Status code is 200\", function() {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// Test for valid JSON response",
+									"pm.test(\"Response is valid JSON\", function() {",
+									"    pm.response.to.be.json;",
+									"});",
+									"",
+									"// Test structure of response",
+									"pm.test(\"Response has correct structure\", function() {",
+									"    var jsonData = pm.response.json();",
+									"    ",
+									"    // Check for data wrapper",
+									"    pm.expect(jsonData).to.have.property('data');",
+									"    pm.expect(jsonData.data).to.have.property('deck_id');",
+									"    pm.expect(jsonData.data).to.have.property('spreads');",
+									"    pm.expect(jsonData.data.spreads).to.be.an('array');",
+									"    ",
+									"    // If there are spreads, check their structure",
+									"    if (jsonData.data.spreads.length > 0) {",
+									"        const firstSpread = jsonData.data.spreads[0];",
+									"        ",
+									"        // Check spread properties",
+									"        pm.expect(firstSpread).to.have.property('id');",
+									"        pm.expect(firstSpread).to.have.property('deck_id');",
+									"        pm.expect(firstSpread).to.have.property('spread_type');",
+									"        pm.expect(firstSpread).to.have.property('creation_date');",
+									"        pm.expect(firstSpread).to.have.property('card_count');",
+									"        ",
+									"        // Check that the card count matches the spread type",
+									"        if (firstSpread.spread_type === 'first') {",
+									"            pm.expect(firstSpread.card_count).to.equal(1);",
+									"        } else if (firstSpread.spread_type === 'second') {",
+									"            pm.expect(firstSpread.card_count).to.equal(3);",
+									"        }",
+									"    }",
+									"});",
+									"",
+									"// Test that spreads are ordered by creation date (newest first)",
+									"pm.test(\"Spreads are ordered by creation date (newest first)\", function() {",
+									"    var jsonData = pm.response.json();",
+									"    ",
+									"    if (jsonData.data.spreads.length > 1) {",
+									"        for (let i = 0; i < jsonData.data.spreads.length - 1; i++) {",
+									"            const currentDate = new Date(jsonData.data.spreads[i].creation_date);",
+									"            const nextDate = new Date(jsonData.data.spreads[i + 1].creation_date);",
+									"            ",
+									"            pm.expect(currentDate.getTime()).to.be.at.least(nextDate.getTime());",
+									"        }",
+									"    }",
+									"});",
+									"",
+									"// Store the ID of the first spread if any are returned",
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.data && jsonData.data.spreads && jsonData.data.spreads.length > 0) {",
+									"        pm.environment.set(\"lastSpreadId\", jsonData.data.spreads[0].id);",
+									"        console.log(\"First spread ID saved: \" + jsonData.data.spreads[0].id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "",
+								"value": "",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "",
+								"value": "",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/spreads",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"spreads"
+							]
+						},
+						"description": "Retrieves a list of all tarot spreads created by the authenticated user.  \nResults are ordered by creation date, with the most recent spreads first."
+					},
+					"response": []
+				},
+				{
+					"name": "Spread Detail",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test for successful response",
+									"pm.test(\"Status code is 200\", function() {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// Test for valid JSON response",
+									"pm.test(\"Response is valid JSON\", function() {",
+									"    pm.response.to.be.json;",
+									"});",
+									"",
+									"// Test structure of response",
+									"pm.test(\"Response has correct structure\", function() {",
+									"    var jsonData = pm.response.json();",
+									"    ",
+									"    // Check for spread properties",
+									"    pm.expect(jsonData).to.have.property('id');",
+									"    pm.expect(jsonData).to.have.property('deck_id');",
+									"    pm.expect(jsonData).to.have.property('spread_type');",
+									"    pm.expect(jsonData).to.have.property('creation_date');",
+									"    ",
+									"    // Check for cards array",
+									"    pm.expect(jsonData).to.have.property('cards').that.is.an('array');",
+									"    ",
+									"    // Verify the number of cards matches the spread type",
+									"    if (jsonData.spread_type === 'first') {",
+									"        pm.expect(jsonData.cards.length).to.equal(1);",
+									"    } else if (jsonData.spread_type === 'second') {",
+									"        pm.expect(jsonData.cards.length).to.equal(3);",
+									"    }",
+									"    ",
+									"    // Verify cards have the correct structure",
+									"    if (jsonData.cards.length > 0) {",
+									"        const firstCard = jsonData.cards[0];",
+									"        pm.expect(firstCard).to.have.property('id');",
+									"        pm.expect(firstCard).to.have.property('position');",
+									"        pm.expect(firstCard).to.have.property('card');",
+									"        ",
+									"        // Verify card details",
+									"        pm.expect(firstCard.card).to.have.property('id');",
+									"        pm.expect(firstCard.card).to.have.property('type');",
+									"        pm.expect(firstCard.card).to.have.property('name');",
+									"        pm.expect(firstCard.card).to.have.property('meaning');",
+									"    }",
+									"});",
+									"",
+									"// Test that the correct spread ID is returned",
+									"pm.test(\"Returned spread has the requested ID\", function() {",
+									"    var jsonData = pm.response.json();",
+									"    var spreadId = pm.environment.get(\"lastSpreadId\");",
+									"    ",
+									"    if (spreadId) {",
+									"        pm.expect(jsonData.id.toString()).to.equal(spreadId.toString());",
+									"    }",
+									"});",
+									"",
+									"// For three-card spreads, test that positions are correct",
+									"pm.test(\"Three-card spread has correct positions\", function() {",
+									"    var jsonData = pm.response.json();",
+									"    ",
+									"    if (jsonData.spread_type === 'second' && jsonData.cards.length === 3) {",
+									"        // Extract positions",
+									"        let positions = jsonData.cards.map(card => card.position);",
+									"        ",
+									"        // Sort positions to verify we have all needed positions",
+									"        positions.sort((a, b) => a - b);",
+									"        ",
+									"        // Check that we have positions 1, 2, and 3",
+									"        pm.expect(positions).to.deep.equal([1, 2, 3]);",
+									"    } else {",
+									"        // Skip this test for single-card spreads",
+									"        pm.expect(true).to.be.true;",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "",
+								"value": "",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "",
+								"value": "",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/spreads/{{lastSpreadId}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"spreads",
+								"{{lastSpreadId}}"
+							]
+						},
+						"description": "Retrieves detailed information about a specific tarot spread, including all cards in the reading.  \nUses the spread ID to fetch the exact spread requested."
+					},
+					"response": []
+				},
+				{
+					"name": "Spread",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test for successful response",
+									"pm.test(\"Status code is 204 No Content\", function() {",
+									"    pm.response.to.have.status(204);",
+									"});",
+									"",
+									"// Alternative test if your API returns 200 instead of 204",
+									"pm.test(\"Status code is successful\", function() {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 204]);",
+									"});",
+									"",
+									"// If the response includes content (for 200 response)",
+									"if (pm.response.code === 200 && pm.response.text()) {",
+									"    pm.test(\"Response is valid JSON\", function() {",
+									"        pm.response.to.be.json;",
+									"    });",
+									"    ",
+									"    // Test for success message in response",
+									"    pm.test(\"Response indicates successful deletion\", function() {",
+									"        try {",
+									"            var jsonData = pm.response.json();",
+									"            ",
+									"            // Check for success indicator or message",
+									"            if (jsonData.hasOwnProperty('success')) {",
+									"                pm.expect(jsonData.success).to.be.true;",
+									"            } else if (jsonData.hasOwnProperty('message')) {",
+									"                pm.expect(jsonData.message).to.include('deleted');",
+									"            } else {",
+									"                // If neither property exists, just pass the test",
+									"                pm.expect(true).to.be.true;",
+									"            }",
+									"        } catch (e) {",
+									"            // If parsing fails, the test passes if we expected no content",
+									"            pm.expect(pm.response.code).to.equal(204);",
+									"        }",
+									"    });",
+									"}",
+									"",
+									"// Store the deleted spread ID temporarily",
+									"var deletedSpreadId = pm.environment.get(\"lastSpreadId\");",
+									"",
+									"// Clear the stored spread ID",
+									"if (pm.response.code === 204 || pm.response.code === 200) {",
+									"    pm.environment.unset(\"lastSpreadId\");",
+									"    console.log(\"Spread ID cleared after deletion\");",
+									"}",
+									"",
+									"// Send a verification request to confirm deletion",
+									"if (deletedSpreadId) {",
+									"    pm.sendRequest({",
+									"        url: pm.variables.get('base_url') + '/spreads/' + deletedSpreadId,",
+									"        method: 'GET',",
+									"        header: {",
+									"            'Accept': 'application/json',",
+									"            'Authorization': 'Bearer ' + pm.environment.get('token')",
+									"        }",
+									"    }, function (err, res) {",
+									"        pm.test(\"Spread is no longer accessible after deletion\", function() {",
+									"            pm.expect(res.code).to.be.oneOf([404, 403, 401]);",
+									"        });",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "",
+								"value": "",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/spreads/{{lastSpreadId}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"spreads",
+								"{{lastSpreadId}}"
+							],
+							"query": [
+								{
+									"key": "",
+									"value": "",
+									"disabled": true
+								},
+								{
+									"key": "",
+									"value": null,
+									"disabled": true
+								}
+							]
+						},
+						"description": "Deletes a specific tarot spread from the user's history.  \nOnly the owner of the spread can delete it, or an administrator."
+					},
+					"response": []
+				}
+			],
+			"auth": {
+				"type": "bearer",
+				"bearer": [
+					{
+						"key": "token",
+						"value": "{{token}}",
+						"type": "string"
+					}
+				]
+			},
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "Admin",
+			"item": [
+				{
+					"name": "All Users",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test for successful response",
+									"pm.test(\"Status code is 200\", function() {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// Test for valid JSON response",
+									"pm.test(\"Response is valid JSON\", function() {",
+									"    pm.response.to.be.json;",
+									"});",
+									"",
+									"// Test structure of response",
+									"pm.test(\"Response has correct structure\", function() {",
+									"    var jsonData = pm.response.json();",
+									"    ",
+									"    // Check if the response has a data property (common in APIs)",
+									"    if (jsonData.hasOwnProperty('data')) {",
+									"        // Check that data is an array of users",
+									"        pm.expect(jsonData.data).to.be.an('array');",
+									"        ",
+									"        // If there are users, check the structure of the first user",
+									"        if (jsonData.data.length > 0) {",
+									"            pm.expect(jsonData.data[0]).to.have.property('id');",
+									"            pm.expect(jsonData.data[0]).to.have.property('name');",
+									"            pm.expect(jsonData.data[0]).to.have.property('email');",
+									"            ",
+									"            // Check additional properties if they exist",
+									"            if (jsonData.data[0].hasOwnProperty('birthdate')) {",
+									"                pm.expect(jsonData.data[0].birthdate).to.be.a('string');",
+									"            }",
+									"            if (jsonData.data[0].hasOwnProperty('created_at')) {",
+									"                pm.expect(jsonData.data[0].created_at).to.be.a('string');",
+									"            }",
+									"        }",
+									"    } else {",
+									"        // If there's no data property, the response itself should be an array",
+									"        pm.expect(jsonData).to.be.an('array');",
+									"        ",
+									"        // If there are users, check the structure of the first user",
+									"        if (jsonData.length > 0) {",
+									"            pm.expect(jsonData[0]).to.have.property('id');",
+									"            pm.expect(jsonData[0]).to.have.property('name');",
+									"            pm.expect(jsonData[0]).to.have.property('email');",
+									"        }",
+									"    }",
+									"});",
+									"",
+									"// Test that multiple users are returned (admin should see all users)",
+									"pm.test(\"Multiple users are returned (admin access)\", function() {",
+									"    var jsonData = pm.response.json();",
+									"    ",
+									"    // Determine where the users are in the response",
+									"    var users = jsonData.hasOwnProperty('data') ? jsonData.data : jsonData;",
+									"    ",
+									"    // Admin should see more than one user",
+									"    pm.expect(users.length).to.be.greaterThan(1);",
+									"});",
+									"",
+									"// Store a user ID for later use in other admin endpoints",
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    var users = jsonData.hasOwnProperty('data') ? jsonData.data : jsonData;",
+									"    ",
+									"    if (users && users.length > 0) {",
+									"        // Store the ID of a user that is not the admin",
+									"        var currentAdminId = pm.environment.get(\"adminUserId\");",
+									"        var userToStore = users.find(user => {",
+									"            // If we know the admin's ID, find a different user",
+									"            if (currentAdminId) {",
+									"                return user.id.toString() !== currentAdminId.toString();",
+									"            } else {",
+									"                // If we don't know the admin's ID, just take the first user",
+									"                return true;",
+									"            }",
+									"        });",
+									"        ",
+									"        if (userToStore) {",
+									"            pm.environment.set(\"targetUserId\", userToStore.id);",
+									"            console.log(\"Target user ID saved: \" + userToStore.id);",
+									"        }",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/users",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"users"
+							]
+						},
+						"description": "Retrieves a list of all users in the system.  \nThis endpoint is restricted to administrators only.  \nRegular users attempting to access this endpoint will only see their own profile."
+					},
+					"response": []
+				},
+				{
+					"name": "User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test for successful response",
+									"pm.test(\"Status code is 200\", function() {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// Test for valid JSON response",
+									"pm.test(\"Response is valid JSON\", function() {",
+									"    pm.response.to.be.json;",
+									"});",
+									"",
+									"// Test structure of response",
+									"pm.test(\"Response has correct structure\", function() {",
+									"    var jsonData = pm.response.json();",
+									"    ",
+									"    // Check if the response has a data property",
+									"    if (jsonData.hasOwnProperty('data')) {",
+									"        jsonData = jsonData.data;",
+									"    }",
+									"    ",
+									"    // Check user properties",
+									"    pm.expect(jsonData).to.have.property('id');",
+									"    pm.expect(jsonData).to.have.property('name');",
+									"    pm.expect(jsonData).to.have.property('email');",
+									"    ",
+									"    // Check additional properties if they exist",
+									"    if (jsonData.hasOwnProperty('birthdate')) {",
+									"        pm.expect(jsonData.birthdate).to.be.a('string');",
+									"    }",
+									"    if (jsonData.hasOwnProperty('created_at')) {",
+									"        pm.expect(jsonData.created_at).to.be.a('string');",
+									"    }",
+									"    if (jsonData.hasOwnProperty('updated_at')) {",
+									"        pm.expect(jsonData.updated_at).to.be.a('string');",
+									"    }",
+									"});",
+									"",
+									"// Test that the correct user ID is returned",
+									"pm.test(\"Returned user has the requested ID\", function() {",
+									"    var jsonData = pm.response.json();",
+									"    var userData = jsonData.hasOwnProperty('data') ? jsonData.data : jsonData;",
+									"    var targetUserId = pm.environment.get(\"targetUserId\");",
+									"    ",
+									"    if (targetUserId) {",
+									"        pm.expect(userData.id.toString()).to.equal(targetUserId.toString());",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/users/{{targetUserId}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"users",
+								"{{targetUserId}}"
+							]
+						},
+						"description": "Retrieves detailed information about a specific user.  \nAdministrators can access any user's profile using their ID.  \nRegular users attempting to access another user's profile will receive a permission error."
+					},
+					"response": []
+				},
+				{
+					"name": "User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test for successful response",
+									"pm.test(\"Status code is 200\", function() {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// Test for valid JSON response",
+									"pm.test(\"Response is valid JSON\", function() {",
+									"    pm.response.to.be.json;",
+									"});",
+									"",
+									"// Test for admin access (should be able to update another user's profile)",
+									"pm.test(\"Admin has permission to update other user profiles\", function() {",
+									"    var jsonData = pm.response.json();",
+									"    ",
+									"    // Check that there's no error message about permissions",
+									"    pm.expect(jsonData).to.not.have.property('message', 'You do not have permission to update this profile');",
+									"});",
+									"",
+									"// Test structure of response",
+									"pm.test(\"Response has correct structure\", function() {",
+									"    var jsonData = pm.response.json();",
+									"    ",
+									"    // Check if the response has a data property",
+									"    pm.expect(jsonData).to.have.property('data');",
+									"    ",
+									"    // Check user properties",
+									"    pm.expect(jsonData.data).to.have.property('id');",
+									"    pm.expect(jsonData.data).to.have.property('name');",
+									"    pm.expect(jsonData.data).to.have.property('email');",
+									"    pm.expect(jsonData.data).to.have.property('birthdate');",
+									"    pm.expect(jsonData.data).to.have.property('created_at');",
+									"    pm.expect(jsonData.data).to.have.property('updated_at');",
+									"    pm.expect(jsonData.data).to.have.property('roles').that.is.an('array');",
+									"});",
+									"",
+									"// Test that the user data was actually updated",
+									"pm.test(\"User data was updated correctly\", function() {",
+									"    var jsonData = pm.response.json();",
+									"    var userData = jsonData.data;",
+									"    var requestBody = JSON.parse(pm.request.body.raw);",
+									"    ",
+									"    // Check that the updated values match what we sent",
+									"    if (requestBody.name) {",
+									"        pm.expect(userData.name).to.equal(requestBody.name);",
+									"    }",
+									"    ",
+									"    if (requestBody.email) {",
+									"        pm.expect(userData.email).to.equal(requestBody.email);",
+									"    }",
+									"    ",
+									"    if (requestBody.birthdate) {",
+									"        // Convert the request date to the format used in the response (DD/MM/YYYY)",
+									"        const requestDate = new Date(requestBody.birthdate);",
+									"        const day = requestDate.getDate().toString().padStart(2, '0');",
+									"        const month = (requestDate.getMonth() + 1).toString().padStart(2, '0');",
+									"        const year = requestDate.getFullYear();",
+									"        const formattedRequestDate = `${day}/${month}/${year}`;",
+									"        ",
+									"        pm.expect(userData.birthdate).to.equal(formattedRequestDate);",
+									"    }",
+									"});",
+									"",
+									"// Test that the correct user ID is returned",
+									"pm.test(\"Returned user has the requested ID\", function() {",
+									"    var jsonData = pm.response.json();",
+									"    var targetUserId = pm.environment.get(\"targetUserId\");",
+									"    ",
+									"    if (targetUserId) {",
+									"        pm.expect(jsonData.data.id.toString()).to.equal(targetUserId.toString());",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Updated User Name\",\n    \"email\": \"updated.email@example.com\",\n    \"birthdate\": \"1992-05-15\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/users/{{targetUserId}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"users",
+								"{{targetUserId}}"
+							]
+						},
+						"description": "Updates information for a specific user.  \nAdministrators can update any user's profile using their ID.  \nRegular users attempting to update another user's profile will receive a permission error."
+					},
+					"response": []
+				},
+				{
+					"name": "User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test for successful response",
+									"pm.test(\"Status code is 204 No Content\", function() {",
+									"    pm.response.to.have.status(204);",
+									"});",
+									"",
+									"// Alternative test if your API returns 200 instead of 204",
+									"pm.test(\"Status code is successful\", function() {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 204]);",
+									"});",
+									"",
+									"// If the response includes content (for 200 response)",
+									"if (pm.response.code === 200 && pm.response.text()) {",
+									"    pm.test(\"Response is valid JSON\", function() {",
+									"        pm.response.to.be.json;",
+									"    });",
+									"    ",
+									"    // Test for success message in response",
+									"    pm.test(\"Response indicates successful deletion\", function() {",
+									"        try {",
+									"            var jsonData = pm.response.json();",
+									"            ",
+									"            // Check for success indicator or message",
+									"            if (jsonData.hasOwnProperty('success')) {",
+									"                pm.expect(jsonData.success).to.be.true;",
+									"            } else if (jsonData.hasOwnProperty('message')) {",
+									"                pm.expect(jsonData.message).to.include('deleted');",
+									"            } else {",
+									"                // If neither property exists, just pass the test",
+									"                pm.expect(true).to.be.true;",
+									"            }",
+									"        } catch (e) {",
+									"            // If parsing fails, the test passes if we expected no content",
+									"            pm.expect(pm.response.code).to.equal(204);",
+									"        }",
+									"    });",
+									"}",
+									"",
+									"// Store the deleted user ID temporarily",
+									"var deletedUserId = pm.environment.get(\"targetUserId\");",
+									"",
+									"// Clear the stored user ID",
+									"if (pm.response.code === 204 || pm.response.code === 200) {",
+									"    pm.environment.unset(\"targetUserId\");",
+									"    console.log(\"Target user ID cleared after deletion\");",
+									"}",
+									"",
+									"// Send a verification request to confirm deletion",
+									"if (deletedUserId) {",
+									"    pm.sendRequest({",
+									"        url: pm.variables.get('base_url') + '/users/' + deletedUserId,",
+									"        method: 'GET',",
+									"        header: {",
+									"            'Accept': 'application/json',",
+									"            'Authorization': 'Bearer ' + pm.environment.get('admin_token')",
+									"        }",
+									"    }, function (err, res) {",
+									"        pm.test(\"User is no longer accessible after deletion\", function() {",
+									"            pm.expect(res.code).to.be.oneOf([404, 403]);",
+									"        });",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "",
+								"value": "",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/users/{{targetUserId}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"users",
+								"{{targetUserId}}"
+							]
+						},
+						"description": "Deletes a specific user from the system.  \nAdministrators can delete any user's account using their ID.  \nRegular users can only delete their own account.  \nThis action is permanent and cannot be undone."
+					},
+					"response": []
+				},
+				{
+					"name": "All Spreads",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test for successful response",
+									"pm.test(\"Status code is 200\", function() {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// Test for valid JSON response",
+									"pm.test(\"Response is valid JSON\", function() {",
+									"    pm.response.to.be.json;",
+									"});",
+									"",
+									"// Test structure of response",
+									"pm.test(\"Response has correct structure\", function() {",
+									"    var jsonData = pm.response.json();",
+									"    ",
+									"    // Check if the response has a spreads property with an array",
+									"    pm.expect(jsonData).to.have.property('spreads').that.is.an('array');",
+									"    ",
+									"    // If there are spreads, check the structure of the first spread",
+									"    if (jsonData.spreads.length > 0) {",
+									"        const firstSpread = jsonData.spreads[0];",
+									"        pm.expect(firstSpread).to.have.property('id');",
+									"        pm.expect(firstSpread).to.have.property('deck_id');",
+									"        pm.expect(firstSpread).to.have.property('spread_type');",
+									"        pm.expect(firstSpread).to.have.property('creation_date');",
+									"        pm.expect(firstSpread).to.have.property('card_count');",
+									"    }",
+									"});",
+									"",
+									"// Test for admin access (should see spreads from multiple users)",
+									"pm.test(\"Admin can see spreads from multiple users/decks\", function() {",
+									"    var jsonData = pm.response.json();",
+									"    ",
+									"    // Extract unique deck IDs from spreads",
+									"    const deckIds = new Set();",
+									"    jsonData.spreads.forEach(spread => {",
+									"        if (spread.deck_id) {",
+									"            deckIds.add(spread.deck_id);",
+									"        }",
+									"    });",
+									"    ",
+									"    // Admin should see spreads from multiple decks",
+									"    pm.expect(deckIds.size).to.be.greaterThan(1);",
+									"    ",
+									"    // Log the number of unique decks found",
+									"    console.log(`Found spreads from ${deckIds.size} unique decks`);",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "",
+								"value": "",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "",
+								"value": "",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/spreads",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"spreads"
+							]
+						},
+						"description": "Retrieves all tarot spreads (readings) from all users in the system.  \nThis endpoint is restricted to administrators only.  \nRegular users attempting to access this endpoint will only see their own spreads."
+					},
+					"response": []
+				}
+			],
+			"auth": {
+				"type": "bearer",
+				"bearer": [
+					{
+						"key": "token",
+						"value": "{{admin_token}}",
+						"type": "string"
+					}
+				]
+			},
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "Test Endpoint",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8000/api/test",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"test"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
